@@ -12,13 +12,13 @@ IPV4_SERVICE_URL = 'https://ipinfo.io/ip'
 
 class Rentry:
     def __init__(self, rentry_id, rentry_code):
-        self.retry_url = RENTRY_URL_PREFIX
+        self.rentry_url = RENTRY_URL_PREFIX
         self.rentry_id = rentry_id
         self.rentry_code = rentry_code
-        self.retry_url_id = self.retry_url + rentry_id
+        self.rentry_url_id = self.rentry_url + rentry_id
 
         self.session = requests.Session()
-        self.session.headers['Referer'] = self.retry_url_id
+        self.session.headers['Referer'] = self.rentry_url_id
     
     def __enter__(self):
         return self
@@ -28,14 +28,14 @@ class Rentry:
         return False
 
     def _get_token(self):
-        response = self.session.get(self.retry_url)
+        response = self.session.get(self.rentry_url)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup.find('input', attrs={'name': 'csrfmiddlewaretoken'})['value']
 
     def get_raw(self):
-        response = self.session.get(self.retry_url_id + '/raw')
+        response = self.session.get(self.rentry_url_id + '/raw')
         response.raise_for_status()
         return response.text
 
@@ -47,7 +47,7 @@ class Rentry:
             'edit_code': self.rentry_code,
         }
 
-        response = self.session.post(self.retry_url_id + '/edit', data=data, allow_redirects=False)
+        response = self.session.post(self.rentry_url_id + '/edit', data=data, allow_redirects=False)
         assert response.status_code == 302 and response.headers['Location'] == '/' + self.rentry_id, 'wrong edit_code?'
 
 
