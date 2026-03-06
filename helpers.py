@@ -3,6 +3,7 @@ import requests
 
 import time
 import socket
+import base64
 
 
 RENTRY_URL_PREFIX = 'https://rentry.co/'
@@ -44,12 +45,16 @@ class Rentry:
     def get_text(self, prefix=b'<div><p>', postfix=b'</p></div>'):
         response = self.session.get(self.rentry_url_id)
         response.raise_for_status()
-        start = response.content.index(prefix) + len(prefix)
-        end = response.content.index(postfix, start)
-        return response.content[start:end].decode()
+        try:
+            start = response.content.index(prefix) + len(prefix)
+            end = response.content.index(postfix, start)
+            return base64.b64decode(response.content[start:end]).decode()
+        except ValueError:
+            return ''
 
     def edit_text(self, text):
         ''' maximum `text` length of 200,000 characters '''
+        text = base64.b64encode(text.encode()).decode()
         data = {
             'csrfmiddlewaretoken': self._get_token(),
             'text': text,
