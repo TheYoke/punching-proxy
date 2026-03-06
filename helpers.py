@@ -34,10 +34,19 @@ class Rentry:
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup.find('input', attrs={'name': 'csrfmiddlewaretoken'})['value']
 
-    def get_raw(self):
-        response = self.session.get(self.rentry_url_id + '/raw')
+    # def get_raw(self):
+    #     ''' This method is now defunct and required an access code to work.
+    #     '''
+    #     response = self.session.get(self.rentry_url_id + '/raw')
+    #     response.raise_for_status()
+    #     return response.text
+
+    def get_text(self, prefix=b'<div><p>', postfix=b'</p></div>'):
+        response = self.session.get(self.rentry_url_id)
         response.raise_for_status()
-        return response.text
+        start = response.content.index(prefix) + len(prefix)
+        end = response.content.index(postfix, start)
+        return response.content[start:end].decode()
 
     def edit_text(self, text):
         ''' maximum `text` length of 200,000 characters '''
@@ -73,7 +82,7 @@ class PortExchangeHelper(Rentry):
         return response.text
     
     def get(self):
-        text = self.get_raw()
+        text = self.get_text()
         return self._extract_addrs(text)
 
     def put(self, addrs):
